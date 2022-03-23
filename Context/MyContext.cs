@@ -32,9 +32,9 @@ namespace API.Context
                 .WithMany(b => b.Profilings)
                 .HasForeignKey(b => b.EducationId);
 
-            modelBuilder.Entity<Education>()
-                .HasOne(a => a.University)
-                .WithMany(b => b.Educations)
+            modelBuilder.Entity<University>()
+                .HasMany(a => a.Educations)
+                .WithOne(b => b.University)
                 .HasForeignKey(b => b.UniversityId);
         }
     }
