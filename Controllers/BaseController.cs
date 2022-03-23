@@ -35,16 +35,15 @@ namespace API.Controllers
         [HttpPost]
         public ActionResult<Entity> Post(Entity entity)
         {
-            return Ok(repository.Insert(entity));
-            //try
-            //{
-            //    var insert = repository.Insert(entity);
-            //    return Ok(new { status = HttpStatusCode.OK, result = entity, message = "Insert Data Successfull" });
-            //}
-            //catch
-            //{
-            //    return StatusCode(500, new { status = HttpStatusCode.InternalServerError, result = entity, message = "Error Occured." });
-            //}
+            try
+            {
+                var insert = repository.Insert(entity);
+                return Ok(new { status = HttpStatusCode.OK, result = entity, message = "Insert Data Successfull" });
+            }
+            catch
+            {
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, result = entity, message = "Error Occured." });
+            }
         }
 
         [HttpPut]
