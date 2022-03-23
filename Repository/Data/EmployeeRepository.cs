@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace API.Repository
+namespace API.Repository.Data
 {
     public class EmployeeRepository : GeneralRepository<MyContext, Employee, string>
     {

@@ -31,6 +31,9 @@ namespace API
             services.AddControllers();
             services.AddScoped<EmployeeRepository>();
             services.AddScoped<AccountRepository>();
+            services.AddScoped<ProfilingRepository>();
+            services.AddScoped<EducationRepository>();
+            services.AddScoped<UniversityRepository>();
             services.AddDbContext<MyContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("API")));
         }

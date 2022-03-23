@@ -9,7 +9,7 @@ namespace API.Models
         [Key, Required]
         public string NIK { get; set; }
         [Required]
-        public int Education_id { get; set; }
+        public int EducationId { get; set; }
         public Account Account { get; set; }
         public Education Education { get; set; }
     }

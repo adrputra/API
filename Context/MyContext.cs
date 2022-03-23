@@ -30,12 +30,12 @@ namespace API.Context
             modelBuilder.Entity<Profiling>()
                 .HasOne(a => a.Education)
                 .WithMany(b => b.Profilings)
-                .HasForeignKey(b => b.Education_id);
+                .HasForeignKey(b => b.EducationId);
 
             modelBuilder.Entity<Education>()
                 .HasOne(a => a.University)
                 .WithMany(b => b.Educations)
-                .HasForeignKey(b => b.University_id);
+                .HasForeignKey(b => b.UniversityId);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace API.Models
     public class University
     {
         [Key, Required]
-        public int id { get; set; }
+        public int ID { get; set; }
         [Required]
         public string Name { get; set; }
         public ICollection<Education> Educations{ get; set; }
