@@ -15,9 +15,10 @@ namespace API.Repository.Data
 
         public int Register(RegisterVM registerVM)
         {
+            string incNIK = GenerateNIK();
             var regEmployee = new Employee
             {
-                NIK = GenerateNIK(),
+                NIK = incNIK,
                 FirstName = registerVM.FirstName,
                 LastName = registerVM.LastName,
                 Phone = registerVM.Phone,
@@ -56,9 +57,17 @@ namespace API.Repository.Data
             }
             else
             {
+                registerVM.NIK = incNIK;
                 myContext.Employees.Add(regEmployee);
                 myContext.Accounts.Add(regAccount);
                 myContext.Educations.Add(regEducation);
+                myContext.SaveChanges();
+                var regProfiling = new Profiling
+                {
+                    NIK = regAccount.NIK,
+                    EducationId = regEducation.ID
+                };
+                myContext.Profilings.Add(regProfiling);
                 myContext.SaveChanges();
                 return 0;
             }
