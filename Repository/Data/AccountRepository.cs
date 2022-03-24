@@ -1,16 +1,49 @@
 ﻿using API.Context;
 using API.Models;
 using API.ViewModel;
+using Microsoft.Data.SqlClient;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using Gender = API.ViewModel.Gender;
 
 namespace API.Repository.Data
 {
     public class AccountRepository : GeneralRepository<MyContext, Account, string>
     {
+        private readonly MyContext myContext;
         public AccountRepository(MyContext myContext) : base(myContext)
         {
+            this.myContext = myContext;
+        }
 
+        public int Login(LoginVM loginVM)
+        {
+            var checkEmail = myContext.Employees.SingleOrDefault(e => e.Email == loginVM.Email);
+            if (checkEmail != null)
+            {
+                var checkPassword = myContext.Accounts.SingleOrDefault(e => e.NIK == checkEmail.NIK);
+                if (checkPassword != null)
+                {
+                    if (checkPassword.Password == loginVM.Password)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return 1;
+                    }
+                }
+                else
+                {
+                    return 3;
+                }
+            }
+            else
+            {
+                return 2;
+            }
         }
 
         public int Register(RegisterVM registerVM)
@@ -93,6 +126,55 @@ namespace API.Repository.Data
                 string incNIK = DateTime.Now.ToString("yyyy") + lastNIK.ToString("D3");
                 return incNIK;
             }
+        }
+
+        public IEnumerable GetMaster()
+        {
+            var masterData = (from emp in myContext.Employees
+                             join acc in myContext.Accounts on emp.NIK equals acc.NIK
+                             join pro in myContext.Profilings on acc.NIK equals pro.NIK
+                             join edu in myContext.Educations on pro.EducationId equals edu.ID
+                             join univ in myContext.Universities on edu.UniversityId equals univ.ID
+                             select new
+                             {
+                                 NIK = emp.NIK,
+                                 FullName = emp.FirstName + " " + emp.LastName,
+                                 Phone = emp.Phone,
+                                 Gender = ((Gender)emp.Gender).ToString(),
+                                 Email = emp.Email,
+                                 BirthDate = emp.BirthDate,
+                                 Salary = emp.Salary,
+                                 EducationId = pro.EducationId,
+                                 GPA = edu.GPA,
+                                 Degree = edu.Degree,
+                                 UniversityName = univ.Name
+                             }).ToList();
+            return masterData;
+        }
+
+        public IEnumerable GetMaster(string NIK)
+        {
+            var masterData = (from emp in myContext.Employees
+                              join acc in myContext.Accounts on emp.NIK equals acc.NIK
+                              join pro in myContext.Profilings on acc.NIK equals pro.NIK
+                              join edu in myContext.Educations on pro.EducationId equals edu.ID
+                              join univ in myContext.Universities on edu.UniversityId equals univ.ID
+                              where emp.NIK == NIK
+                              select new
+                              {
+                                  NIK = emp.NIK,
+                                  FullName = emp.FirstName + " " + emp.LastName,
+                                  Phone = emp.Phone,
+                                  Gender = ((Gender)emp.Gender).ToString(),
+                                  Email = emp.Email,
+                                  BirthDate = emp.BirthDate,
+                                  Salary = emp.Salary,
+                                  EducationId = pro.EducationId,
+                                  GPA = edu.GPA,
+                                  Degree = edu.Degree,
+                                  UniversityName = univ.Name
+                              }).ToList();
+            return masterData;
         }
     }
 }

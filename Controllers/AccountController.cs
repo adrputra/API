@@ -39,5 +39,55 @@ namespace API.Controllers
                 return StatusCode(500, new { status = HttpStatusCode.InternalServerError, result = registerVM, message = "Error Occured!" });
             }
         }
+
+        [HttpPost("login")]
+        public ActionResult Login(LoginVM loginVM)
+        {
+            try
+            {
+                var login = _accountRepository.Login(loginVM);
+                return login switch
+                {
+                    0 => Ok(new { status = HttpStatusCode.OK, result = loginVM, message = "Login Successfull" }),
+                    1 => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Wrong Password!" }),
+                    2 => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Email Not Found!" }),
+                    3 => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Email Found But No Account!" }),
+                    _ => BadRequest(new { status = HttpStatusCode.BadRequest, message = "Login Failed!" })
+
+                };
+            }
+            catch
+            {
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, result = loginVM, message = "Error Occured!" });
+            }
+        }
+
+        [HttpGet("master/{NIK}")]
+        public ActionResult GetMasterByID(string NIK)
+        {
+            try
+            {
+                var master = _accountRepository.GetMaster(NIK);
+                return StatusCode(200, new { status = HttpStatusCode.OK, result = master, message = $"Get Master Data {NIK} Successfully!" });
+            }
+            catch
+            {
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
+            }
+        }
+
+        [HttpGet("master")]
+        public ActionResult GetMaster()
+        {
+            try
+            {
+                var master = _accountRepository.GetMaster();
+                return StatusCode(200, new { status = HttpStatusCode.OK, result = master, message = "Get Master Data Successfully!" });
+            }
+            catch
+            {
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
+            }
+        }
     }
 }
