@@ -34,12 +34,16 @@ namespace API.Repository.Data
                 Password = registerVM.Password
             };
 
+
             var regEducation = new Education
             {
                 Degree = registerVM.Degree,
                 GPA = registerVM.GPA,
                 UniversityId = registerVM.UniversityId
             };
+
+            
+
             var cekNIK = myContext.Employees.Any(e => e.NIK == regEmployee.NIK);
             var cekEmail = myContext.Employees.Any(e => e.Email == regEmployee.Email);
             var cekPhone = myContext.Employees.Any(e => e.Phone == regEmployee.Phone);
@@ -62,13 +66,15 @@ namespace API.Repository.Data
                 myContext.Accounts.Add(regAccount);
                 myContext.Educations.Add(regEducation);
                 myContext.SaveChanges();
+
                 var regProfiling = new Profiling
                 {
                     NIK = regAccount.NIK,
                     EducationId = regEducation.ID
                 };
+
                 myContext.Profilings.Add(regProfiling);
-                myContext.SaveChanges();
+                myContext.SaveChanges(); 
                 return 0;
             }
             
