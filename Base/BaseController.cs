@@ -25,11 +25,11 @@ namespace API.Controllers
         {
             if (repository.Get().ToList().Count == 0)
             {
-                return StatusCode(404, new { status = HttpStatusCode.NotFound, result = repository.Get(), message = "Data Tidak Ditemukan." });
+                return StatusCode(404, new { status = HttpStatusCode.NotFound, result = repository.Get(), message = "Data Not Found." });
             }
             else
             {
-                return StatusCode(200, new { status = HttpStatusCode.OK, result = repository.Get(), message = "Data Ditemukan." });
+                return StatusCode(200, new { status = HttpStatusCode.OK, result = repository.Get(), message = "Data Found." });
             }
         }
         [HttpPost]
@@ -57,10 +57,10 @@ namespace API.Controllers
             {
                 if (ex is DbUpdateConcurrencyException || ex is DbUpdateException)
                 {
-                    return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = entity, message = "Data Gagal Diubah. DbUpdateConcurrencyException or DbUpdateException" });
+                    return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = entity, message = "Data Edit Failed. DbUpdateConcurrencyException or DbUpdateException" });
                 }
             }
-            return StatusCode(200, new { status = HttpStatusCode.OK, result = entity, message = "Data Berhasil Diubah." });
+            return StatusCode(200, new { status = HttpStatusCode.OK, result = entity, message = "Data Successfully Edited." });
         }
 
         [HttpDelete("{key}")]
@@ -70,13 +70,13 @@ namespace API.Controllers
             {
                 var erased = repository.Get(key);
                 repository.Delete(key);
-                return StatusCode(200, new { status = HttpStatusCode.OK, result = erased, message = "Data Berhasil Dihapus." });
+                return StatusCode(200, new { status = HttpStatusCode.OK, result = erased, message = "Data Successfully Deleted." });
             }
             catch (Exception ex)
             {
                 if (ex is ArgumentNullException)
                 {
-                    return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = repository.Delete(key), message = "Data Gagal Dihapus. ArgumentNullException" });
+                    return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = repository.Delete(key), message = "Data Delete Failed. ArgumentNullException" });
                 }
             }
             return StatusCode(200);
