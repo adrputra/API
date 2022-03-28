@@ -1,7 +1,6 @@
 ﻿using API.Context;
 using API.Models;
 using API.ViewModel;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
@@ -192,17 +191,14 @@ namespace API.Repository.Data
                 account.ExpiredToken = DateTime.Now.AddMinutes(5);
                 myContext.Entry(account).State = EntityState.Modified;
                 myContext.SaveChanges();
-                SendEmail();
-                //SendEmail(forgotPasswordVM.Email, OTP);
-                //if (SendEmail(forgotPasswordVM.Email, OTP))
-                //{
-                //    return 0;
-                //}
-                //else
-                //{
-                //    return 2;
-                //}
-                return 0;
+                if (SendEmail(forgotPasswordVM.Email, OTP))
+                {
+                    return 0;
+                }
+                else
+                {
+                    return 2;
+                }
             }
             else
             {
@@ -210,13 +206,29 @@ namespace API.Repository.Data
             }
         }
 
-        public void SendEmail()
+        //public void SendEmail()
+        //{
+        //    var email = new MimeMessage();
+        //    email.From.Add(MailboxAddress.Parse("8andraputra@gmail.com"));
+        //    email.To.Add(MailboxAddress.Parse("ricardoandra17@gmail.com"));
+        //    email.Subject = "Forgot Password";
+        //    email.Body = new TextPart(TextFormat.Html) { Text = "<h1>Example HTML Message Body</h1>" };
+
+        //    // send email
+        //    var smtp = new SmtpClient();
+        //    smtp.Connect("smtp.gmail.com", 25, SecureSocketOptions.None);
+        //    smtp.Authenticate("8andraputra@gmail.com", "gmail@adr");
+        //    smtp.Send(email);
+        //    smtp.Disconnect(true);
+        //}
+
+        public bool SendEmail(string Email, int OTP)
         {
-            string to = "ricardoandra17@gmail.com";
+            string to = Email;
             string from = "8andraputra@gmail.com";
             MailMessage message = new MailMessage(from, to);
 
-            string mailbody = $"You have requested new password. Do not give this code authentication to anyone. OTP : 5555";
+            string mailbody = $"You have requested new password. Do not give this authentication code to anyone. OTP : {OTP}";
             message.Subject = "Forgot Password OTP";
             message.Body = mailbody;
             message.BodyEncoding = Encoding.UTF8;
@@ -224,18 +236,50 @@ namespace API.Repository.Data
             SmtpClient client = new SmtpClient("smtp.gmail.com", 587); //Gmail smtp    
             System.Net.NetworkCredential basicCredential1 = new
             System.Net.NetworkCredential("8andraputra@gmail.com", "gmail@adr");
-            //client.EnableSsl = true;
+            client.EnableSsl = true;
             client.UseDefaultCredentials = false;
             client.Credentials = basicCredential1;
             try
             {
                 client.Send(message);
+                return true;
             }
 
             catch (Exception ex)
             {
                 throw ex;
             }
+        }
+
+        public int ChangePassword(ChangePasswordVM changePasswordVM)
+        {
+            var checkEmail = myContext.Employees.SingleOrDefault(e => e.Email == changePasswordVM.Email);
+            var account = myContext.Accounts.Find(checkEmail.NIK);
+            if (checkEmail != null)
+            {
+                if (changePasswordVM.OTP == account.OTP)
+                {
+                    if (account.isUsed == false)
+                    {
+                        if (DateTime.Now > account.ExpiredToken)
+                        {
+                            if (changePasswordVM.NewPassword == changePasswordVM.ConfirmPassword)
+                            {
+                                account.isUsed = true;
+                                account.Password = BCrypt.Net.BCrypt.HashPassword(changePasswordVM.ConfirmPassword, BCrypt.Net.BCrypt.GenerateSalt(12));
+                                myContext.Entry(account).State = EntityState.Modified;
+                                myContext.SaveChanges();
+                                return 0;
+                            }
+                            else { return 1; }
+                        }
+                        else { return 2; }
+                    }
+                    else { return 3; }
+                }
+                else { return 4; }
+            }
+            else { return 5; }
         }
     }
 }
