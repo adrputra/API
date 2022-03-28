@@ -72,14 +72,10 @@ namespace API.Controllers
                 repository.Delete(key);
                 return StatusCode(200, new { status = HttpStatusCode.OK, result = erased, message = "Data Successfully Deleted." });
             }
-            catch (Exception ex)
+            catch
             {
-                if (ex is ArgumentNullException)
-                {
-                    return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = repository.Delete(key), message = "Data Delete Failed. ArgumentNullException" });
-                }
+                return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = repository.Delete(key), message = "Data Delete Failed. ArgumentNullException" });
             }
-            return StatusCode(200);
         }
     }
 }

@@ -82,12 +82,43 @@ namespace API.Controllers
             try
             {
                 var master = _accountRepository.GetMaster();
-                return StatusCode(200, new { status = HttpStatusCode.OK, result = master, message = "Get Master Data Successfully!" });
+                if(master == null)
+                {
+                    return StatusCode(400, new { status = HttpStatusCode.BadRequest, result = master, message = "No Data Found" });
+                }
+                else
+                {
+                    return StatusCode(200, new { status = HttpStatusCode.OK, result = master, message = "Get Master Data Successfully!" });
+                }
             }
             catch
             {
                 return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
             }
+        }
+
+        [HttpPost("forgotpassword")]
+        public ActionResult ForgotPassword(ForgotPasswordVM forgotPasswordVM)
+        {
+            //var entry = _accountRepository.ForgotPassword(forgotPasswordVM);
+            return Ok(_accountRepository.ForgotPassword(forgotPasswordVM));
+
+            //try
+            //{
+            //    var entry = _accountRepository.ForgotPassword(forgotPasswordVM);
+            //    return entry switch
+            //    {
+            //        0 => Ok(new { status = HttpStatusCode.OK, result = forgotPasswordVM, message = "New Password Request Successfull. Verification email has been sent." }),
+            //        1 => BadRequest(new { status = HttpStatusCode.BadRequest, result = forgotPasswordVM, message = "Request Failed. No Email Found!" }),
+            //        2 => BadRequest(new { status = HttpStatusCode.BadRequest, result = forgotPasswordVM, message = "Request Failed. Email Found but cant send verification code!" }),
+            //        _ => BadRequest(new { status = HttpStatusCode.BadRequest, message = "Request Failed!" })
+
+            //    };
+            //}
+            //catch
+            //{
+            //    return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
+            //}
         }
     }
 }

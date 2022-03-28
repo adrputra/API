@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models
@@ -10,6 +11,9 @@ namespace API.Models
         public string NIK { get; set; }
         [Required]
         public string Password { get; set; }
+        public int OTP { get; set; }
+        public DateTime ExpiredToken{ get; set; }
+        public bool isUsed { get; set; }
         public Employee Employee { get; set; }
         public Profiling Profiling { get; set; }
     }

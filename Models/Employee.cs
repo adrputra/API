@@ -7,6 +7,7 @@ namespace API.Models
     [Table("EMPLOYEE")]
     public class Employee
     {
+        //[RegularExpression(@"^\d{5}-[a-zA-Z]\d$")]
         [Key]
         public string NIK { get; set; }
         [Required]

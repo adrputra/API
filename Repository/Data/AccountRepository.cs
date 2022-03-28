@@ -2,10 +2,13 @@
 using API.Models;
 using API.ViewModel;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
+using System.Text;
 using Gender = API.ViewModel.Gender;
 
 namespace API.Repository.Data
@@ -26,7 +29,7 @@ namespace API.Repository.Data
                 var checkPassword = myContext.Accounts.SingleOrDefault(e => e.NIK == checkEmail.NIK);
                 if (checkPassword != null)
                 {
-                    if (checkPassword.Password == loginVM.Password)
+                    if (BCrypt.Net.BCrypt.Verify(loginVM.Password,checkPassword.Password))
                     {
                         return 0;
                     }
@@ -64,7 +67,7 @@ namespace API.Repository.Data
             var regAccount = new Account
             {
                 NIK = regEmployee.NIK,
-                Password = registerVM.Password
+                Password = BCrypt.Net.BCrypt.HashPassword(registerVM.Password,BCrypt.Net.BCrypt.GenerateSalt(12))
             };
 
 
@@ -175,6 +178,64 @@ namespace API.Repository.Data
                                   UniversityName = univ.Name
                               }).ToList();
             return masterData;
+        }
+
+        public int ForgotPassword(ForgotPasswordVM forgotPasswordVM)
+        {
+            var checkEmail = myContext.Employees.SingleOrDefault(e => e.Email == forgotPasswordVM.Email);
+            if (checkEmail != null)
+            {
+                Random random = new Random();
+                int OTP = random.Next(1000,9999);
+                var account = myContext.Accounts.Find(checkEmail.NIK);
+                account.OTP = OTP;
+                account.ExpiredToken = DateTime.Now.AddMinutes(5);
+                myContext.Entry(account).State = EntityState.Modified;
+                myContext.SaveChanges();
+                SendEmail();
+                //SendEmail(forgotPasswordVM.Email, OTP);
+                //if (SendEmail(forgotPasswordVM.Email, OTP))
+                //{
+                //    return 0;
+                //}
+                //else
+                //{
+                //    return 2;
+                //}
+                return 0;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        public void SendEmail()
+        {
+            string to = "ricardoandra17@gmail.com";
+            string from = "8andraputra@gmail.com";
+            MailMessage message = new MailMessage(from, to);
+
+            string mailbody = $"You have requested new password. Do not give this code authentication to anyone. OTP : 5555";
+            message.Subject = "Forgot Password OTP";
+            message.Body = mailbody;
+            message.BodyEncoding = Encoding.UTF8;
+            message.IsBodyHtml = true;
+            SmtpClient client = new SmtpClient("smtp.gmail.com", 587); //Gmail smtp    
+            System.Net.NetworkCredential basicCredential1 = new
+            System.Net.NetworkCredential("8andraputra@gmail.com", "gmail@adr");
+            //client.EnableSsl = true;
+            client.UseDefaultCredentials = false;
+            client.Credentials = basicCredential1;
+            try
+            {
+                client.Send(message);
+            }
+
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }
