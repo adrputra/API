@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -24,7 +25,8 @@ namespace API.Models
         public string Email { get; set; }
         [Required]
         public Gender Gender { get; set; }
-        public Account Account { get; set; }
+        //[JsonIgnore]
+        public virtual Account Account { get; set; }
     }
     public enum Gender { Male, Female }
 }

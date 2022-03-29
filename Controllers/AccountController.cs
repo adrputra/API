@@ -3,6 +3,7 @@ using API.Repository.Data;
 using API.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Net;
 
 namespace API.Controllers
@@ -114,9 +115,9 @@ namespace API.Controllers
 
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = ex.Message });
             }
         }
 

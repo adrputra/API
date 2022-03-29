@@ -14,7 +14,7 @@ namespace API.Models
         public int OTP { get; set; }
         public DateTime ExpiredToken{ get; set; }
         public bool isUsed { get; set; }
-        public Employee Employee { get; set; }
-        public Profiling Profiling { get; set; }
+        public virtual Employee Employee { get; set; }
+        public virtual Profiling Profiling { get; set; }
     }
 }

@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace API
 {
@@ -34,8 +35,13 @@ namespace API
             services.AddScoped<ProfilingRepository>();
             services.AddScoped<EducationRepository>();
             services.AddScoped<UniversityRepository>();
-            services.AddDbContext<MyContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("API")));
+            //services.AddDbContext<MyContext>(options =>
+            //options.UseSqlServer(Configuration.GetConnectionString("API")));
+            services.AddDbContext<MyContext>(options => 
+            options.UseLazyLoadingProxies().UseSqlServer(Configuration.GetConnectionString("API")));
+
+            services.AddControllers().AddNewtonsoftJson(options => 
+            options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

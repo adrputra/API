@@ -1,11 +1,13 @@
 ﻿using API.Context;
 using API.Models;
 using API.ViewModel;
+using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Text;
 using Gender = API.ViewModel.Gender;
@@ -181,12 +183,13 @@ namespace API.Repository.Data
 
         public int ForgotPassword(ForgotPasswordVM forgotPasswordVM)
         {
-            var checkEmail = myContext.Employees.SingleOrDefault(e => e.Email == forgotPasswordVM.Email);
+            var checkEmail = myContext.Employees.FirstOrDefault(e => e.Email == forgotPasswordVM.Email);
             if (checkEmail != null)
             {
                 Random random = new Random();
-                int OTP = random.Next(1000,9999);
+                int OTP = random.Next(100000,999999);
                 var account = myContext.Accounts.Find(checkEmail.NIK);
+                account.isUsed = false;
                 account.OTP = OTP;
                 account.ExpiredToken = DateTime.Now.AddMinutes(5);
                 myContext.Entry(account).State = EntityState.Modified;
@@ -206,20 +209,21 @@ namespace API.Repository.Data
             }
         }
 
-        //public void SendEmail()
+        //public bool SendEmail(string Email, int OTP)
         //{
         //    var email = new MimeMessage();
         //    email.From.Add(MailboxAddress.Parse("8andraputra@gmail.com"));
-        //    email.To.Add(MailboxAddress.Parse("ricardoandra17@gmail.com"));
+        //    email.To.Add(MailboxAddress.Parse(Email));
         //    email.Subject = "Forgot Password";
-        //    email.Body = new TextPart(TextFormat.Html) { Text = "<h1>Example HTML Message Body</h1>" };
+        //    email.Body = new TextPart(TextFormat.Html) { Text = $"<h1>{OTP}</h1>" };
 
         //    // send email
         //    var smtp = new SmtpClient();
-        //    smtp.Connect("smtp.gmail.com", 25, SecureSocketOptions.None);
+        //    smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
         //    smtp.Authenticate("8andraputra@gmail.com", "gmail@adr");
         //    smtp.Send(email);
         //    smtp.Disconnect(true);
+        //    return true;
         //}
 
         public bool SendEmail(string Email, int OTP)
@@ -233,9 +237,9 @@ namespace API.Repository.Data
             message.Body = mailbody;
             message.BodyEncoding = Encoding.UTF8;
             message.IsBodyHtml = true;
-            SmtpClient client = new SmtpClient("smtp.gmail.com", 587); //Gmail smtp    
-            System.Net.NetworkCredential basicCredential1 = new
-            System.Net.NetworkCredential("8andraputra@gmail.com", "gmail@adr");
+            System.Net.Mail.SmtpClient client = new System.Net.Mail.SmtpClient("smtp.gmail.com", 587); //Gmail smtp    
+            NetworkCredential basicCredential1 = new
+            NetworkCredential("8andraputra@gmail.com", "gmail@adr");
             client.EnableSsl = true;
             client.UseDefaultCredentials = false;
             client.Credentials = basicCredential1;
@@ -253,7 +257,7 @@ namespace API.Repository.Data
 
         public int ChangePassword(ChangePasswordVM changePasswordVM)
         {
-            var checkEmail = myContext.Employees.SingleOrDefault(e => e.Email == changePasswordVM.Email);
+            var checkEmail = myContext.Employees.FirstOrDefault(e => e.Email == changePasswordVM.Email);
             var account = myContext.Accounts.Find(checkEmail.NIK);
             if (checkEmail != null)
             {
@@ -261,7 +265,7 @@ namespace API.Repository.Data
                 {
                     if (account.isUsed == false)
                     {
-                        if (DateTime.Now > account.ExpiredToken)
+                        if (DateTime.Now < account.ExpiredToken)
                         {
                             if (changePasswordVM.NewPassword == changePasswordVM.ConfirmPassword)
                             {
