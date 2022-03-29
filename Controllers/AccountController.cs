@@ -1,10 +1,19 @@
-﻿using API.Models;
+﻿using API.Context;
+using API.Models;
 using API.Repository.Data;
 using API.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net;
+using System.Security.Claims;
+using System.Text;
 
 namespace API.Controllers
 {
@@ -12,10 +21,12 @@ namespace API.Controllers
     [ApiController]
     public class AccountController : BaseController<Account, AccountRepository, string>
     {
-        public readonly AccountRepository _accountRepository;
-        public AccountController(AccountRepository accountRepository) : base(accountRepository)
+        public AccountRepository _accountRepository;
+        private readonly MyContext myContext;
+        public AccountController(AccountRepository accountRepository, MyContext myContext) : base(accountRepository)
         {
             this._accountRepository = accountRepository;
+            this.myContext = myContext;
         }
 
         [HttpPost("register")]
@@ -35,9 +46,9 @@ namespace API.Controllers
                 };
 
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, result = registerVM, message = "Error Occured!" });
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = ex.Message });
             }
         }
 
@@ -49,20 +60,20 @@ namespace API.Controllers
                 var login = _accountRepository.Login(loginVM);
                 return login switch
                 {
-                    0 => Ok(new { status = HttpStatusCode.OK, result = loginVM, message = "Login Successfull" }),
-                    1 => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Wrong Password!" }),
-                    2 => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Email Not Found!" }),
-                    3 => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Email Found But No Account!" }),
-                    _ => BadRequest(new { status = HttpStatusCode.BadRequest, message = "Login Failed!" })
+                    "1" => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Wrong Password!" }),
+                    "2" => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Email Not Found!" }),
+                    "3" => BadRequest(new { status = HttpStatusCode.BadRequest, result = loginVM, message = "Login Failed. Email Found But No Account!" }),
+                    _ => Ok(new { status = HttpStatusCode.OK, login, message = "Login Successfull" })
 
                 };
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, result = loginVM, message = "Error Occured!" });
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = ex.Message });
             }
         }
 
+        [Authorize(Roles = "Director,Manager")]
         [HttpGet("master/{NIK}")]
         public ActionResult GetMasterByID(string NIK)
         {
@@ -71,12 +82,13 @@ namespace API.Controllers
                 var master = _accountRepository.GetMaster(NIK);
                 return StatusCode(200, new { status = HttpStatusCode.OK, result = master, message = $"Get Master Data {NIK} Successfully!" });
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = ex.Message });
             }
         }
 
+        [Authorize(Roles = "Director,Manager")]
         [HttpGet("master")]
         public ActionResult GetMaster()
         {
@@ -92,25 +104,25 @@ namespace API.Controllers
                     return StatusCode(200, new { status = HttpStatusCode.OK, result = master, message = "Get Master Data Successfully!" });
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = "Error Occured!" });
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = ex.Message });
             }
         }
 
         [HttpPost("forgotpassword")]
-        public ActionResult ForgotPassword(ForgotPasswordVM forgotPasswordVM)
+        public ActionResult ForgotPassword(EmailVM emailVM)
         {
-            //return Ok(_accountRepository.ForgotPassword(forgotPasswordVM));
+            //return Ok(_accountRepository.ForgotPassword(emailVM));
 
             try
             {
-                var entry = _accountRepository.ForgotPassword(forgotPasswordVM);
+                var entry = _accountRepository.ForgotPassword(emailVM);
                 return entry switch
                 {
-                    0 => Ok(new { status = HttpStatusCode.OK, result = forgotPasswordVM, message = "New Password Request Successfull. Verification email has been sent." }),
-                    1 => BadRequest(new { status = HttpStatusCode.BadRequest, result = forgotPasswordVM, message = "Request Failed. Email Not Found!" }),
-                    2 => BadRequest(new { status = HttpStatusCode.BadRequest, result = forgotPasswordVM, message = "Request Failed. Email Found but cant send verification code!" }),
+                    0 => Ok(new { status = HttpStatusCode.OK, result = emailVM, message = "New Password Request Successfull. Verification email has been sent." }),
+                    1 => BadRequest(new { status = HttpStatusCode.BadRequest, result = emailVM, message = "Request Failed. Email Not Found!" }),
+                    2 => BadRequest(new { status = HttpStatusCode.BadRequest, result = emailVM, message = "Request Failed. Email Found but cant send verification code!" }),
                     _ => BadRequest(new { status = HttpStatusCode.BadRequest, message = "Request Failed!" })
 
                 };
@@ -139,11 +151,17 @@ namespace API.Controllers
 
                 };
             }
-            catch (System.Exception)
+            catch (Exception ex)
             {
-
-                throw;
+                return StatusCode(500, new { status = HttpStatusCode.InternalServerError, message = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpGet("TestJWT")]
+        public ActionResult TestJWT()
+        {
+            return Ok("Test JWT Success");
         }
     }
 }

@@ -42,6 +42,29 @@ namespace API.Migrations
                     b.ToTable("Account");
                 });
 
+            modelBuilder.Entity("API.Models.AccountRole", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("NIK")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("RoleID")
+                        .HasColumnType("int");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("NIK");
+
+                    b.HasIndex("RoleID");
+
+                    b.ToTable("AccountRoles");
+                });
+
             modelBuilder.Entity("API.Models.Education", b =>
                 {
                     b.Property<int>("ID")
@@ -117,6 +140,21 @@ namespace API.Migrations
                     b.ToTable("Profiling");
                 });
 
+            modelBuilder.Entity("API.Models.Role", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("Roles");
+                });
+
             modelBuilder.Entity("API.Models.University", b =>
                 {
                     b.Property<int>("ID")
@@ -142,6 +180,25 @@ namespace API.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("API.Models.AccountRole", b =>
+                {
+                    b.HasOne("API.Models.Account", "Account")
+                        .WithMany("AccountRoles")
+                        .HasForeignKey("NIK")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Models.Role", "Role")
+                        .WithMany("AccountRoles")
+                        .HasForeignKey("RoleID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("API.Models.Education", b =>
@@ -176,6 +233,8 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.Account", b =>
                 {
+                    b.Navigation("AccountRoles");
+
                     b.Navigation("Profiling");
                 });
 
@@ -187,6 +246,11 @@ namespace API.Migrations
             modelBuilder.Entity("API.Models.Employee", b =>
                 {
                     b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("API.Models.Role", b =>
+                {
+                    b.Navigation("AccountRoles");
                 });
 
             modelBuilder.Entity("API.Models.University", b =>

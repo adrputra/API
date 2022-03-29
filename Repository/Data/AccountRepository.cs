@@ -1,14 +1,17 @@
 ﻿using API.Context;
 using API.Models;
 using API.ViewModel;
-using MailKit.Net.Smtp;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Security.Claims;
 using System.Text;
 using Gender = API.ViewModel.Gender;
 
@@ -17,12 +20,14 @@ namespace API.Repository.Data
     public class AccountRepository : GeneralRepository<MyContext, Account, string>
     {
         private readonly MyContext myContext;
-        public AccountRepository(MyContext myContext) : base(myContext)
+        public IConfiguration configuration;
+        public AccountRepository(MyContext myContext, IConfiguration configuration) : base(myContext)
         {
             this.myContext = myContext;
+            this.configuration = configuration;
         }
 
-        public int Login(LoginVM loginVM)
+        public string Login(LoginVM loginVM)
         {
             var checkEmail = myContext.Employees.SingleOrDefault(e => e.Email == loginVM.Email);
             if (checkEmail != null)
@@ -32,21 +37,47 @@ namespace API.Repository.Data
                 {
                     if (BCrypt.Net.BCrypt.Verify(loginVM.Password,checkPassword.Password))
                     {
-                        return 0;
+                        var roles = (from emp in myContext.Employees
+                                     join accrole in myContext.AccountRoles on emp.NIK equals accrole.NIK
+                                     join role in myContext.Roles on accrole.RoleID equals role.ID
+                                     where emp.Email == loginVM.Email 
+                                     select new
+                                     {
+                                         roles = role.Name
+                                     });
+                        var claims = new List<Claim>();
+                        claims.Add(new Claim("Email", loginVM.Email));
+                        foreach (var item in roles)
+                        {
+                            claims.Add(new Claim("roles", item.roles));
+                        }
+
+                        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]));
+                        var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                        var token = new JwtSecurityToken(
+                                    configuration["Jwt:Issuer"],
+                                    configuration["Jwt:Audience"],
+                                    claims,
+                                    expires: DateTime.UtcNow.AddMinutes(10),
+                                    signingCredentials: signIn
+                                    );
+                        var idToken = new JwtSecurityTokenHandler().WriteToken(token);
+                        claims.Add(new Claim("TokenSecurity", idToken.ToString()));
+                        return idToken;
                     }
                     else
                     {
-                        return 1;
+                        return "1";
                     }
                 }
                 else
                 {
-                    return 3;
+                    return "3";
                 }
             }
             else
             {
-                return 2;
+                return "2";
             }
         }
 
@@ -79,6 +110,12 @@ namespace API.Repository.Data
                 UniversityId = registerVM.UniversityId
             };
 
+            var regAccountRole = new AccountRole
+            {
+                NIK = regAccount.NIK,
+                RoleID = 1
+            };
+
             
 
             var cekNIK = myContext.Employees.Any(e => e.NIK == regEmployee.NIK);
@@ -99,8 +136,10 @@ namespace API.Repository.Data
             else
             {
                 registerVM.NIK = incNIK;
+                registerVM.Password =  regAccount.Password; 
                 myContext.Employees.Add(regEmployee);
                 myContext.Accounts.Add(regAccount);
+                myContext.AccountRoles.Add(regAccountRole);
                 myContext.Educations.Add(regEducation);
                 myContext.SaveChanges();
 
@@ -181,9 +220,9 @@ namespace API.Repository.Data
             return masterData;
         }
 
-        public int ForgotPassword(ForgotPasswordVM forgotPasswordVM)
+        public int ForgotPassword(EmailVM emailVM)
         {
-            var checkEmail = myContext.Employees.FirstOrDefault(e => e.Email == forgotPasswordVM.Email);
+            var checkEmail = myContext.Employees.FirstOrDefault(e => e.Email == emailVM.Email);
             if (checkEmail != null)
             {
                 Random random = new Random();
@@ -194,7 +233,7 @@ namespace API.Repository.Data
                 account.ExpiredToken = DateTime.Now.AddMinutes(5);
                 myContext.Entry(account).State = EntityState.Modified;
                 myContext.SaveChanges();
-                if (SendEmail(forgotPasswordVM.Email, OTP))
+                if (SendEmail(emailVM.Email, OTP))
                 {
                     return 0;
                 }

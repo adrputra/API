@@ -1,19 +1,19 @@
 ﻿using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models
 {
-    [Table("Profiling")]
-    public class Profiling
+    public class AccountRole
     {
         [Key, Required]
+        public int ID { get; set; }
+        [Required]
         public string NIK { get; set; }
         [Required]
-        public int EducationId { get; set; }
+        public int RoleID { get; set; }
         [JsonIgnore]
         public virtual Account Account { get; set; }
         [JsonIgnore]
-        public virtual Education Education { get; set; }
+        public virtual Role Role { get; set; }
     }
 }

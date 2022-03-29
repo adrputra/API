@@ -25,7 +25,7 @@ namespace API.Models
         public string Email { get; set; }
         [Required]
         public Gender Gender { get; set; }
-        //[JsonIgnore]
+        [JsonIgnore]
         public virtual Account Account { get; set; }
     }
     public enum Gender { Male, Female }

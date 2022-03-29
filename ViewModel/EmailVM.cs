@@ -2,7 +2,7 @@
 
 namespace API.ViewModel
 {
-    public class ForgotPasswordVM
+    public class EmailVM
     {
         [Required]
         public string Email { get; set; }

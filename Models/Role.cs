@@ -1,18 +1,15 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models
 {
-    [Table("University")]
-    public class University
+    public class Role
     {
-        [Key, Required]
+        [Key]
         public int ID { get; set; }
-        [Required]
         public string Name { get; set; }
         [JsonIgnore]
-        public virtual ICollection<Education> Educations{ get; set; }
+        public virtual ICollection<AccountRole> AccountRoles{ get; set; }
     }
 }
