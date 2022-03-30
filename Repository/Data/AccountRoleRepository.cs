@@ -1,6 +1,8 @@
 ﻿using API.Context;
 using API.Models;
 using API.ViewModel;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace API.Repository.Data
@@ -18,14 +20,36 @@ namespace API.Repository.Data
             var checkEmail = myContext.Employees.FirstOrDefault(e => e.Email == emailVM.Email);
             if (checkEmail != null)
             {
-                AccountRole regAccountRole = new AccountRole
+                var roles = new List<string>();
+                var query= (from emp in myContext.Employees
+                             join accrole in myContext.AccountRoles on emp.NIK equals accrole.NIK
+                             join role in myContext.Roles on accrole.RoleID equals role.ID
+                             where emp.Email == emailVM.Email
+                             select new
+                             {
+                                 roles = role.Name
+                             }).ToList();
+                foreach (var item in query)
                 {
-                    NIK = checkEmail.NIK,
-                    RoleID = 2
-                };
-                myContext.AccountRoles.Add(regAccountRole);
-                myContext.SaveChanges();
-                return 0;
+                    roles.Add(item.roles);
+                }
+
+                if (!roles.Contains("Manager"))
+                {
+                    AccountRole regAccountRole = new AccountRole
+                    {
+                        NIK = checkEmail.NIK,
+                        RoleID = 2
+                    };
+                    myContext.AccountRoles.Add(regAccountRole);
+                    myContext.SaveChanges();
+                    return 0;
+                }
+                else
+                {
+                    return 2;
+                }
+               
             }
             else
             {

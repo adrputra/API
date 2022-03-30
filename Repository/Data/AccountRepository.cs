@@ -173,6 +173,7 @@ namespace API.Repository.Data
 
         public IEnumerable GetMaster()
         {
+            
             var masterData = (from emp in myContext.Employees
                              join acc in myContext.Accounts on emp.NIK equals acc.NIK
                              join pro in myContext.Profilings on acc.NIK equals pro.NIK
@@ -190,8 +191,17 @@ namespace API.Repository.Data
                                  EducationId = pro.EducationId,
                                  GPA = edu.GPA,
                                  Degree = edu.Degree,
-                                 UniversityName = univ.Name
+                                 UniversityName = univ.Name,
+                                 Role = (from acc in myContext.Accounts
+                                         join accrole in myContext.AccountRoles on acc.NIK equals accrole.NIK
+                                         join role in myContext.Roles on accrole.RoleID equals role.ID
+                                         where accrole.NIK == emp.NIK
+                                         select new
+                                         {
+                                             role.Name
+                                         }).ToArray()
                              }).ToList();
+            
             return masterData;
         }
 

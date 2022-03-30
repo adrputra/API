@@ -24,6 +24,12 @@ namespace API.Controllers
         {
 
         }
+
+        [HttpGet("TestCORS")]
+        public ActionResult TestCors()
+        {
+            return Ok("Test CORS berhasil");
+        }
     }
 
     //public class EmployeesController : ControllerBase

@@ -33,6 +33,7 @@ namespace API.Controllers
                 {
                     0 => Ok(new { status = HttpStatusCode.OK, result = emailVM, message = "Sign Manager Successfull" }),
                     1 => BadRequest(new { status = HttpStatusCode.BadRequest, result = emailVM, message = "Sign Manager Failed, Email Not Found!" }),
+                    2 => BadRequest(new { status = HttpStatusCode.BadRequest, result = emailVM, message = "Sign Manager Failed, Account is Already Manager!" }),
                     _ => BadRequest(new { status = HttpStatusCode.BadRequest, message = "Sign Manager Failed!" })
                 };
             }
